@@ -87,3 +87,6 @@ Error: Target not available
 Try to see where the flow is going
 
 ### Periodic transfer or one-shot transfer? ANS - Periodic 5 sends with 1sec gaps
+### Increment works for only single dma transfer calls not seperate
+
+### Keep in mind the size of the data to be transferred in a single dma start call

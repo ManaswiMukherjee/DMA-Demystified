@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdbool.h"
@@ -44,14 +45,34 @@ DMA_HandleTypeDef hdma_memtomem_dma2_stream0;
 uint32_t src_arr[5] = {0x1, 0x2, 0x3, 0x4, 0x5};
 uint32_t dest_arr[5];
 uint32_t cur_ticks = 1;
-bool volatile trf_cplt = 0;
+bool volatile trf_cplt = 1;
+uint8_t volatile count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_DMA_Init(void);
+static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 void dma_full_trf_cplt(DMA_HandleTypeDef *_hdma);
+
+void led_indicate_done(void)
+{
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);  // active-low: LOW = ON
+}
+bool volatile data_verified = false;
+
+bool verify_data(void)
+{
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        if (dest_arr[i] != src_arr[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -88,31 +109,38 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_DMA_Init();
+  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
   HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, &dma_full_trf_cplt);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  HAL_Delay(5000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  trf_cplt = 0;
-	  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr, (uint32_t)&dest_arr, 4) == HAL_OK){
-		  while(1){__NOP();}
+	  if(count >= 5){
+	      data_verified = verify_data();
+	      if(data_verified){
+	          led_indicate_done();
+	      }
+	      while(1);
 	  }
 
-	  cur_ticks = HAL_GetTick();
-	  while(HAL_GetTick() < (cur_ticks + 1000)){__NOP();}
-
 	  if(trf_cplt == 1){
-		  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr, (uint32_t)&dest_arr, 4) != HAL_OK){
+		  trf_cplt = 0;
+		  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr[count], (uint32_t)&dest_arr[count], 4) != HAL_OK){
 			  while(1){__NOP();}
 		  }
 	  }
 
+	  cur_ticks = HAL_GetTick();
+	  while(HAL_GetTick() < (cur_ticks + 1000)){__NOP();}
 
   }
   /* USER CODE END 3 */
@@ -196,10 +224,41 @@ static void MX_DMA_Init(void)
 
 }
 
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
+}
+
 /* USER CODE BEGIN 4 */
 void dma_full_trf_cplt(DMA_HandleTypeDef *_hdma)
 {
 	trf_cplt = 1;
+	count++;
 }
 /* USER CODE END 4 */
 
