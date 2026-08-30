@@ -72,3 +72,12 @@ LED does not blink with code
 cur_ticks = HAL_GetTick();
 	while(HAL_GetTick() < cur_ticks + 1000){__NOP();}
 ```
+
+### Incorrect `HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, &dma_full_transfer_cplt(*_hdma));`
+
+### Correct `HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, &dma_full_transfer_cplt);`
+
+We are passing the funciton as a pointer.
+
+
+## Assignment SRAM to SRAM, transfer data from one array to another
