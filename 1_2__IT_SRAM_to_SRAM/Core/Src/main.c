@@ -18,10 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,7 +43,8 @@ DMA_HandleTypeDef hdma_memtomem_dma2_stream0;
 /* USER CODE BEGIN PV */
 uint32_t src_arr[5] = {0x1, 0x2, 0x3, 0x4, 0x5};
 uint32_t dest_arr[5];
-uint32_t cur_ticks = 0;
+uint32_t cur_ticks = 1;
+bool volatile trf_cplt = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,12 +99,21 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr, (uint32_t)&dest_arr, 1) != HAL_OK){
+	  trf_cplt = 0;
+	  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr, (uint32_t)&dest_arr, 4) == HAL_OK){
 		  while(1){__NOP();}
 	  }
 
 	  cur_ticks = HAL_GetTick();
 	  while(HAL_GetTick() < (cur_ticks + 1000)){__NOP();}
+
+	  if(trf_cplt == 1){
+		  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr, (uint32_t)&dest_arr, 4) != HAL_OK){
+			  while(1){__NOP();}
+		  }
+	  }
+
+
   }
   /* USER CODE END 3 */
 }
@@ -190,7 +199,7 @@ static void MX_DMA_Init(void)
 /* USER CODE BEGIN 4 */
 void dma_full_trf_cplt(DMA_HandleTypeDef *_hdma)
 {
-
+	trf_cplt = 1;
 }
 /* USER CODE END 4 */
 

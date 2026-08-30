@@ -81,3 +81,9 @@ We are passing the funciton as a pointer.
 
 
 ## Assignment SRAM to SRAM, transfer data from one array to another
+
+### Initial code does not work, only one value gets transferred.
+Error: Target not available
+Try to see where the flow is going
+
+### Periodic transfer or one-shot transfer? ANS - Periodic 5 sends with 1sec gaps
