@@ -1,1 +1,1 @@
-### The assignment was ambiguous so this specific program is to transfer the data from one address in sram to another periodically and not in one step.
+### The assignment was ambiguous so I chose this specific program to transfer the data from one address in sram to another periodically and not in one step.

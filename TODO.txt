@@ -1,1 +1,4 @@
 Try initialising M2M on dma1 see if it initialises
+
+Complete IT uart(not fully compelted) and do polling uart by myself
+Try SRAM to SRAM using polling(only done using IT)

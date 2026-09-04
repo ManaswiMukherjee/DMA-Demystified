@@ -90,3 +90,5 @@ Try to see where the flow is going
 ### Increment works for only single dma transfer calls not seperate
 
 ### Keep in mind the size of the data to be transferred in a single dma start call
+
+### SRAM to SRAM works is verified led blink and not through debugger as it is creating problems. The debugger works for max upto 4 then stops and shows target not available but the current LED test works.

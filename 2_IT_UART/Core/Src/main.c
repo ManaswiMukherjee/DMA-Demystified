@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdbool.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define offset 0x800
+#define dst_addr (SRAM1_BASE + offset)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -40,25 +41,20 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-DMA_HandleTypeDef hdma_memtomem_dma2_stream0;
-/* USER CODE BEGIN PV */
-uint32_t src_arr[5] = {0x1, 0x2, 0x3, 0x4, 0x5};
-uint32_t dest_arr[5];
+UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_rx;
 
-uint32_t cur_ticks = 1;
-bool volatile trf_cplt = 1;
-uint8_t volatile count = 0;
-bool volatile data_verified = false;
+/* USER CODE BEGIN PV */
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_DMA_Init(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void dma_full_trf_cplt(DMA_HandleTypeDef *_hdma);
-void led_indicate_done(void);
-bool verify_data(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -94,40 +90,21 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_DMA_Init();
   MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, &dma_full_trf_cplt);
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  HAL_Delay(5000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(count >= 5){
-	      data_verified = verify_data();
-	      if(data_verified){
-	          led_indicate_done();
-	      }
-	      while(1);
-	  }
-
-	  if(trf_cplt == 1){
-		  trf_cplt = 0;
-		  if(HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)&src_arr[count], (uint32_t)&dest_arr[count], 4) != HAL_OK){
-			  while(1){__NOP();}
-		  }
-	  }
-
-	  cur_ticks = HAL_GetTick();
-	  while(HAL_GetTick() < (cur_ticks + 1000)){__NOP();}
-
+	  HAL_UART_Receive_DMA(&huart1, (uint8_t *)dst_addr, 10);
   }
   /* USER CODE END 3 */
 }
@@ -174,9 +151,40 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
-  * Configure DMA for memory to memory transfers
-  *   hdma_memtomem_dma2_stream0
   */
 static void MX_DMA_Init(void)
 {
@@ -184,29 +192,10 @@ static void MX_DMA_Init(void)
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
 
-  /* Configure DMA request hdma_memtomem_dma2_stream0 on DMA2_Stream0 */
-  hdma_memtomem_dma2_stream0.Instance = DMA2_Stream0;
-  hdma_memtomem_dma2_stream0.Init.Channel = DMA_CHANNEL_0;
-  hdma_memtomem_dma2_stream0.Init.Direction = DMA_MEMORY_TO_MEMORY;
-  hdma_memtomem_dma2_stream0.Init.PeriphInc = DMA_PINC_ENABLE;
-  hdma_memtomem_dma2_stream0.Init.MemInc = DMA_MINC_ENABLE;
-  hdma_memtomem_dma2_stream0.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma_memtomem_dma2_stream0.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-  hdma_memtomem_dma2_stream0.Init.Mode = DMA_NORMAL;
-  hdma_memtomem_dma2_stream0.Init.Priority = DMA_PRIORITY_LOW;
-  hdma_memtomem_dma2_stream0.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-  hdma_memtomem_dma2_stream0.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-  hdma_memtomem_dma2_stream0.Init.MemBurst = DMA_MBURST_SINGLE;
-  hdma_memtomem_dma2_stream0.Init.PeriphBurst = DMA_PBURST_SINGLE;
-  if (HAL_DMA_Init(&hdma_memtomem_dma2_stream0) != HAL_OK)
-  {
-    Error_Handler( );
-  }
-
   /* DMA interrupt init */
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 
 }
 
@@ -217,23 +206,12 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -241,27 +219,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void dma_full_trf_cplt(DMA_HandleTypeDef *_hdma)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	trf_cplt = 1;
-	count++;
-}
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
 
-void led_indicate_done(void)
-{
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);  // active-low: LOW = ON
-}
-
-bool verify_data(void)
-{
-    for (uint8_t i = 0; i < 5; i++)
-    {
-        if (dest_arr[i] != src_arr[i])
-        {
-            return false;
-        }
-    }
-    return true;
 }
 /* USER CODE END 4 */
 
