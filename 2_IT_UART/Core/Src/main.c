@@ -104,7 +104,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_UART_Receive_DMA(&huart1, (uint8_t *)dst_addr, 10);
+	  HAL_UART_Receive_DMA(&huart1, (uint8_t *)dst_addr, 100);
   }
   /* USER CODE END 3 */
 }

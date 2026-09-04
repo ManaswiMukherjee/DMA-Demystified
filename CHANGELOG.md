@@ -92,3 +92,11 @@ Try to see where the flow is going
 ### Keep in mind the size of the data to be transferred in a single dma start call
 
 ### SRAM to SRAM works is verified led blink and not through debugger as it is creating problems. The debugger works for max upto 4 then stops and shows target not available but the current LED test works.
+
+## 04/09/26
+### 2_IT_UART
+### The memory was updating with old messages when debugger was refreshed and desired condition was not found.
+#### This was caused due to stm32cubeide's non auto refresh nature.
+#### When `*(uint8_t[100]*)0x20000800` is added as a live expression it does show up immediately when sent from serial monitor terminal.
+
+### In the course Keil is used which auto refreshes memory.
