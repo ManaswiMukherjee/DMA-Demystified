@@ -100,3 +100,50 @@ Try to see where the flow is going
 #### When `*(uint8_t[100]*)0x20000800` is added as a live expression it does show up immediately when sent from serial monitor terminal.
 
 ### In the course Keil is used which auto refreshes memory.
+
+## 12/09/26
+### Completed and tested SRAM to UART exercise and started the scratch project for the same (Last section).
+
+## Starting dma scratch exercise section
+### While doing bare-metal/CMSIS programming it is not strictly necessary to configure the clock of the mcu as when the board boots up it automatically selects the default clock config and operates with it if nothing is configured through code.
+
+## 13/09/26 - SRAM to UART scratch programming
+## How to confiure edge detection?
+### To do this we need to configure interrupts for edge detection which is done by the EXTI(External Interrupt) Falling Trigger selection register.
+
+## There are only 22 exti bits in the ftsr register are they for A,B,C all at once?
+### Not all at once but only one. They bits are by line number and multiplexed like bit0 - MUX(PA0, PB0, PC0, PD0, PE0, PH0)
+
+## How to select the pins for the exti line
+### This is done by using the SYSCFG register(See RM).
+
+### Example
+```c
+// configuring exti0 for GPIOA using SYSCFG
+SYSCFG->EXTICR[0] &= ~(0xF << 0);
+```
+
+## What is interrupt mask?
+### This is the register to enable the interrupts for the specific line.
+
+## What is event mask then?
+### EMR is the same idea as IMR, but for events instead of interrupts.
+
+   * IMR lets the EXTI line generate an interrupt
+   * EMR lets the EXTI line generate an event
+
+An event is a lighter signal used by some MCU features, often to wake the CPU or trigger hardware behavior without going through the normal interrupt handler. If you’re just handling a button press in an ISR, you usually only need `IMR`, not `EMR`. 
+
+## How to enable the IRQ related to GPIO in NVIC?
+### `NVIC_EnableIRQ(EXTI0_IRQn);` is the way to do that. Note that this is not a pointer but a function that cmsis provides for portability and safety.
+
+## Missing SYSCFG Clock Enable
+
+### Additions to code written by self
+* configure PA0 with a pull-up.
+* clear any pending EXTI0 flag before enabling.
+* optionally clear the rising trigger bit if you only want falling edge.
+
+## Interrupt gets called without even pressing the button
+### WE are configuring the edge detection for the exti without first telling which pin to multiplex. But my code already follows this standard, `then why`?
+### This was happening due to the uart function that was defined, problem was solved by commenting out the function.
