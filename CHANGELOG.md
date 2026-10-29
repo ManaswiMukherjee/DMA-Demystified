@@ -147,3 +147,30 @@ An event is a lighter signal used by some MCU features, often to wake the CPU or
 ## Interrupt gets called without even pressing the button
 ### WE are configuring the edge detection for the exti without first telling which pin to multiplex. But my code already follows this standard, `then why`?
 ### This was happening due to the uart function that was defined, problem was solved by commenting out the function.
+
+
+## 27/10/26
+## Why does 0x08 come up as a expansion of `GPIO_AF8_USART6`?
+### Wrong should have written `GPIO_MODER_...`
+silly mistake
+
+## How many stop bits?
+
+## How to configure the baud rate?
+### Using the formula `USARTDIV = USART_CLK / (16 × desired_baud_rate)`
+
+## Now from where to find the USART_CLK?
+### It can be found from the clock tree given in `6.2` and specifically the APB2 bus feeds the USART6 peripheral 
+
+## What is Mantissa?
+### This is the integer portion of a decimal number
+
+
+## Do we need pull-up or pull-down on the pins?
+### In any type of communication be it I2C, SPI and UART we always need pull up because we need the voltage to be kept high.
+
+## Output was not comming when testing for usart check
+### Send logic was inverted for send_data function
+
+## Can one enable the ue before configuring the usart cr registers or does one have to strictly do them after configuring?
+### TE bit was commented out
